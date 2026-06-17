@@ -16,18 +16,31 @@
   margin-bottom: $spacing-lg;
 }
 
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
 .cardTitle {
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
   color: $color-text-primary;
-  margin-bottom: $spacing-md;
   display: flex;
   align-items: center;
   gap: $spacing-xs;
+  margin-bottom: 0;
 }
 
 .cardTitleIcon {
   font-size: $font-size-lg;
+}
+
+.changeLink {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
 }
 
 .seatDetail {
@@ -235,4 +248,17 @@
 .priceDown {
   color: $color-success;
   font-weight: $font-weight-semibold;
+}
+
+.conflictAlert {
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: rgba($color-danger, 0.08);
+  border-radius: $radius-md;
+}
+
+.conflictAlertText {
+  font-size: $font-size-sm;
+  color: $color-danger;
+  line-height: 1.5;
 }

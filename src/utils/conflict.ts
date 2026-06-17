@@ -38,6 +38,30 @@ export const isSeatFixedForMonthly = (
   }) || null;
 };
 
+export const isSeatOccupiedInRange = (
+  seatId: string,
+  startDate: string,
+  endDate: string,
+  existingBookings: Booking[],
+  excludeBookingId?: string
+): Booking[] => {
+  const conflicts: Booking[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    existingBookings.forEach((booking) => {
+      if (excludeBookingId && booking.id === excludeBookingId) return;
+      if (booking.seatId !== seatId) return;
+      if (booking.isMonthly) return;
+      if (booking.status === 'cancelled') return;
+      if (booking.date !== dateStr) return;
+      conflicts.push(booking);
+    });
+  }
+  return conflicts;
+};
+
 export const checkBookingConflict = (
   seatId: string,
   date: string,

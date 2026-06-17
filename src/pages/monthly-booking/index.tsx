@@ -9,7 +9,7 @@ import SeatGrid from '../../components/SeatGrid';
 import DatePicker from '../../components/DatePicker';
 import { MonthlyPackage } from '../../types/pricing';
 import { Seat } from '../../types/seat';
-import { isSeatFixedForMonthly } from '../../utils/conflict';
+import { isSeatFixedForMonthly, isSeatOccupiedInRange } from '../../utils/conflict';
 import styles from './index.module.scss';
 
 const MonthlyBookingPage: React.FC = () => {
@@ -47,14 +47,24 @@ const MonthlyBookingPage: React.FC = () => {
     const result: string[] = [];
     const seats = getAllSeats();
     seats.forEach((s) => {
+      let conflict = false;
       const start = new Date(startDate);
       const end = new Date(endDate);
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         if (isSeatFixedForMonthly(s.id, dateStr, bookings)) {
-          result.push(s.id);
+          conflict = true;
           break;
         }
+      }
+      if (!conflict) {
+        const normalConflicts = isSeatOccupiedInRange(s.id, startDate, endDate, bookings);
+        if (normalConflicts.length > 0) {
+          conflict = true;
+        }
+      }
+      if (conflict) {
+        result.push(s.id);
       }
     });
     return result;
@@ -63,7 +73,8 @@ const MonthlyBookingPage: React.FC = () => {
   const canSubmit = useMemo(() => {
     if (!selectedPkg) return false;
     if (!selectedSeat) return false;
-    return !checkMonthlyConflict(selectedSeat.id, startDate, endDate);
+    const check = checkMonthlyConflict(selectedSeat.id, startDate, endDate);
+    return !check.hasConflict;
   }, [selectedPkg, selectedSeat, startDate, endDate, checkMonthlyConflict]);
 
   const handlePackageSelect = (pkg: MonthlyPackage) => {
@@ -84,7 +95,11 @@ const MonthlyBookingPage: React.FC = () => {
       return;
     }
     if (occupiedSeatIdsForMonthly.includes(clickedSeat.id)) {
-      Taro.showToast({ title: '该座位在所选日期范围内已被月租锁定', icon: 'none' });
+      const conflict = checkMonthlyConflict(clickedSeat.id, startDate, endDate);
+      Taro.showToast({
+        title: conflict.hasConflict && conflict.message ? conflict.message : '该座位在所选日期范围内已被锁定',
+        icon: 'none',
+      });
       return;
     }
     setMonthlySeat(clickedSeat);
@@ -95,8 +110,11 @@ const MonthlyBookingPage: React.FC = () => {
     if (!canSubmit) return;
 
     const conflict = checkMonthlyConflict(selectedSeat!.id, startDate, endDate);
-    if (conflict) {
-      Taro.showToast({ title: '该座位在所选日期范围内已被月租锁定', icon: 'none' });
+    if (conflict.hasConflict) {
+      Taro.showToast({
+        title: conflict.message || '该座位在所选日期范围内有冲突',
+        icon: 'none',
+      });
       return;
     }
 
@@ -175,7 +193,7 @@ const MonthlyBookingPage: React.FC = () => {
             选择固定座位
           </Text>
           <Text style={{ fontSize: '26rpx', color: '#86909C', marginBottom: '24rpx' }}>
-            灰色座位为已被锁定的月租固定座
+            灰色座位为已被锁定（月租或已有普通预订）
           </Text>
           {mockSeatZones.map((zone) => (
             <View key={zone.id} className={styles.seatGridSection}>

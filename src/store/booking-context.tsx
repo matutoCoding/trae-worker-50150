@@ -5,7 +5,7 @@ import { Booking, SelectedSeatInfo } from '../types/booking';
 import { BillingResult, MonthlyPackage } from '../types/pricing';
 import { mockBookings } from '../data/bookings';
 import { getToday, addDays } from '../utils/date';
-import { checkBookingConflict, releaseBookingTimeSlot, isSeatFixedForMonthly } from '../utils/conflict';
+import { checkBookingConflict, releaseBookingTimeSlot, isSeatFixedForMonthly, isSeatOccupiedInRange } from '../utils/conflict';
 import { calculateBilling } from '../utils/billing';
 
 const STORAGE_KEY_BOOKINGS = 'study_room_bookings';
@@ -28,18 +28,20 @@ interface BookingContextValue {
   bookings: Booking[];
   selectedSeatInfo: SelectedSeatInfo;
   monthlyBookingInfo: MonthlyBookingInfo;
+  modifyBookingId: string | null;
   setSelectedSeat: (seat: Seat | null) => void;
   setSelectedDate: (date: string) => void;
   setSelectedTime: (startTime: string, endTime: string) => void;
   setMonthlyPackage: (pkg: MonthlyPackage | null) => void;
   setMonthlyStartDate: (date: string) => void;
   setMonthlySeat: (seat: Seat | null) => void;
+  setModifyBookingId: (id: string | null) => void;
   createBooking: () => Booking | null;
   createMonthlyBooking: () => Booking | null;
   cancelBooking: (bookingId: string) => boolean;
   modifyBooking: (bookingId: string) => ModifyResult;
   checkConflict: (seatId: string, date: string, startTime: string, endTime: string, excludeBookingId?: string) => boolean;
-  checkMonthlyConflict: (seatId: string, startDate: string, endDate: string, excludeBookingId?: string) => boolean;
+  checkMonthlyConflict: (seatId: string, startDate: string, endDate: string, excludeBookingId?: string) => { hasConflict: boolean; message?: string };
   calculateCurrentBilling: () => BillingResult | null;
   initModifyMode: (bookingId: string) => void;
   resetMonthlyBooking: () => void;
@@ -57,7 +59,7 @@ const initialSelectedInfo: SelectedSeatInfo = {
 const initialMonthlyInfo: MonthlyBookingInfo = {
   package: null,
   startDate: getToday(),
-  endDate: addDays(getToday(), 30),
+  endDate: addDays(getToday(), 29),
   seat: null,
 };
 
@@ -85,10 +87,19 @@ const saveBookingsToStorage = (bookings: Booking[]) => {
   }
 };
 
+const STORAGE_KEY_MODIFY_ID = 'study_room_modify_booking_id';
+
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [bookings, setBookings] = useState<Booking[]>(() => loadBookingsFromStorage());
   const [selectedSeatInfo, setSelectedSeatInfo] = useState<SelectedSeatInfo>(initialSelectedInfo);
   const [monthlyBookingInfo, setMonthlyBookingInfo] = useState<MonthlyBookingInfo>(initialMonthlyInfo);
+  const [modifyBookingId, setModifyBookingId] = useState<string | null>(() => {
+    try {
+      return Taro.getStorageSync(STORAGE_KEY_MODIFY_ID) || null;
+    } catch {
+      return null;
+    }
+  });
 
   useEffect(() => {
     saveBookingsToStorage(bookings);
@@ -114,7 +125,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setMonthlyBookingInfo((prev) => ({
       ...prev,
       package: pkg,
-      endDate: pkg ? addDays(prev.startDate, pkg.days) : prev.endDate,
+      endDate: pkg ? addDays(prev.startDate, pkg.days - 1) : prev.endDate,
     }));
   }, []);
 
@@ -123,7 +134,7 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setMonthlyBookingInfo((prev) => ({
       ...prev,
       startDate: date,
-      endDate: prev.package ? addDays(date, prev.package.days) : addDays(date, 30),
+      endDate: prev.package ? addDays(date, prev.package.days - 1) : addDays(date, 29),
     }));
   }, []);
 
@@ -132,21 +143,41 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     setMonthlyBookingInfo((prev) => ({ ...prev, seat }));
   }, []);
 
+  const setModifyBookingIdWithStorage = useCallback((id: string | null) => {
+    console.log('[BookingContext] 设置改期订单ID:', id);
+    setModifyBookingId(id);
+    try {
+      if (id) {
+        Taro.setStorageSync(STORAGE_KEY_MODIFY_ID, id);
+      } else {
+        Taro.removeStorageSync(STORAGE_KEY_MODIFY_ID);
+      }
+    } catch (e) {
+      console.error('[BookingContext] 保存改期订单ID失败:', e);
+    }
+  }, []);
+
   const resetMonthlyBooking = useCallback(() => {
     setMonthlyBookingInfo(initialMonthlyInfo);
   }, []);
 
   const checkMonthlyConflict = useCallback(
-    (seatId: string, startDate: string, endDate: string, excludeBookingId?: string): boolean => {
+    (seatId: string, startDate: string, endDate: string, excludeBookingId?: string): { hasConflict: boolean; message?: string } => {
       const start = new Date(startDate);
       const end = new Date(endDate);
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        if (isSeatFixedForMonthly(seatId, dateStr, bookings, excludeBookingId)) {
-          return true;
+        const monthlyBooking = isSeatFixedForMonthly(seatId, dateStr, bookings, excludeBookingId);
+        if (monthlyBooking) {
+          return { hasConflict: true, message: `该座位在 ${dateStr} 已被月租锁定` };
         }
       }
-      return false;
+      const normalConflicts = isSeatOccupiedInRange(seatId, startDate, endDate, bookings, excludeBookingId);
+      if (normalConflicts.length > 0) {
+        const conflictDates = [...new Set(normalConflicts.map((b) => b.date))];
+        return { hasConflict: true, message: `该座位在 ${conflictDates.slice(0, 3).join('、')}${conflictDates.length > 3 ? '等日期' : ''} 已有普通预订订单` };
+      }
+      return { hasConflict: false };
     },
     [bookings]
   );
@@ -163,8 +194,9 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
       return null;
     }
 
-    if (checkMonthlyConflict(seat.id, startDate, endDate)) {
-      console.error('[BookingContext] 创建月租订单失败: 座位在该日期范围内已被月租锁定');
+    const conflictCheck = checkMonthlyConflict(seat.id, startDate, endDate);
+    if (conflictCheck.hasConflict) {
+      console.error('[BookingContext] 创建月租订单失败:', conflictCheck.message);
       return null;
     }
 
@@ -330,12 +362,14 @@ export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children })
     bookings,
     selectedSeatInfo,
     monthlyBookingInfo,
+    modifyBookingId,
     setSelectedSeat,
     setSelectedDate,
     setSelectedTime,
     setMonthlyPackage,
     setMonthlyStartDate,
     setMonthlySeat,
+    setModifyBookingId: setModifyBookingIdWithStorage,
     createBooking,
     createMonthlyBooking,
     cancelBooking,

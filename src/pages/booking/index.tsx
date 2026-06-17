@@ -3,6 +3,8 @@ import { View, Text, Button } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import { useBooking } from '../../store/booking-context';
 import BillingDetail from '../../components/BillingDetail';
+import DatePicker from '../../components/DatePicker';
+import TimeSlotPicker from '../../components/TimeSlotPicker';
 import { calculateBilling } from '../../utils/billing';
 import { checkBookingConflict } from '../../utils/conflict';
 import styles from './index.module.scss';
@@ -10,20 +12,31 @@ import styles from './index.module.scss';
 const BookingPage: React.FC = () => {
   const router = useRouter();
   const modifyId = router.params.modifyId;
-  const { selectedSeatInfo, createBooking, modifyBooking, bookings, initModifyMode } = useBooking();
+  const {
+    selectedSeatInfo,
+    bookings,
+    modifyBookingId,
+    createBooking,
+    modifyBooking,
+    initModifyMode,
+    setModifyBookingId,
+    setSelectedDate,
+    setSelectedTime,
+  } = useBooking();
   const { seat, date, startTime, endTime } = selectedSeatInfo;
-  const isModifyMode = !!modifyId;
+  const isModifyMode = !!modifyId || !!modifyBookingId;
+  const effectiveModifyId = modifyId || modifyBookingId;
 
   const originalBooking = useMemo(() => {
     if (!isModifyMode) return null;
-    return bookings.find((b) => b.id === modifyId);
-  }, [isModifyMode, modifyId, bookings]);
+    return bookings.find((b) => b.id === effectiveModifyId);
+  }, [isModifyMode, effectiveModifyId, bookings]);
 
   useEffect(() => {
-    if (isModifyMode && originalBooking) {
-      initModifyMode(modifyId);
+    if (isModifyMode && originalBooking && !modifyBookingId) {
+      initModifyMode(effectiveModifyId!);
     }
-  }, [isModifyMode, modifyId, originalBooking, initModifyMode]);
+  }, [isModifyMode, modifyBookingId, originalBooking, effectiveModifyId, initModifyMode]);
 
   const billing = useMemo(() => {
     if (!startTime || !endTime) return null;
@@ -32,9 +45,29 @@ const BookingPage: React.FC = () => {
 
   const hasConflict = useMemo(() => {
     if (!seat) return false;
-    const result = checkBookingConflict(seat.id, date, startTime, endTime, bookings, isModifyMode ? modifyId : undefined);
+    const result = checkBookingConflict(
+      seat.id,
+      date,
+      startTime,
+      endTime,
+      bookings,
+      isModifyMode ? effectiveModifyId || undefined : undefined
+    );
     return result.hasConflict;
-  }, [seat, date, startTime, endTime, bookings, isModifyMode, modifyId]);
+  }, [seat, date, startTime, endTime, bookings, isModifyMode, effectiveModifyId]);
+
+  const conflictMessage = useMemo(() => {
+    if (!seat) return '';
+    const result = checkBookingConflict(
+      seat.id,
+      date,
+      startTime,
+      endTime,
+      bookings,
+      isModifyMode ? effectiveModifyId || undefined : undefined
+    );
+    return result.message || '';
+  }, [seat, date, startTime, endTime, bookings, isModifyMode, effectiveModifyId]);
 
   const priceDiff = useMemo(() => {
     if (!isModifyMode || !originalBooking || !billing) return null;
@@ -47,24 +80,32 @@ const BookingPage: React.FC = () => {
   if (seat?.nearWindow) seatTags.push('靠窗');
   if (seat?.hasPower) seatTags.push('有插座');
 
+  const handleChangeSeat = () => {
+    if (isModifyMode && effectiveModifyId) {
+      setModifyBookingId(effectiveModifyId);
+    }
+    Taro.switchTab({ url: '/pages/home/index' });
+  };
+
   const handleSubmit = () => {
     if (!seat || !billing) return;
     if (hasConflict) {
-      Taro.showToast({ title: '该时段已被占用，请重新选择', icon: 'none' });
+      Taro.showToast({ title: conflictMessage || '该时段已被占用，请重新选择', icon: 'none' });
       return;
     }
 
     Taro.showLoading({ title: '提交中...' });
     setTimeout(() => {
-      if (isModifyMode && modifyId) {
-        const result = modifyBooking(modifyId);
+      if (isModifyMode && effectiveModifyId) {
+        const result = modifyBooking(effectiveModifyId);
         Taro.hideLoading();
         if (result.success && result.booking) {
-          Taro.showToast({ 
-            title: result.priceDiff && result.priceDiff > 0 
-              ? `修改成功，${result.message}` 
-              : '修改成功', 
-            icon: 'success' 
+          setModifyBookingId(null);
+          Taro.showToast({
+            title: result.priceDiff && result.priceDiff > 0
+              ? `修改成功，${result.message}`
+              : '修改成功',
+            icon: 'success',
           });
           setTimeout(() => {
             Taro.redirectTo({
@@ -91,10 +132,6 @@ const BookingPage: React.FC = () => {
     }, 500);
   };
 
-  const handleGoSelect = () => {
-    Taro.switchTab({ url: '/pages/home/index' });
-  };
-
   if (!seat || !billing) {
     return (
       <View className={styles.bookingPage}>
@@ -102,7 +139,7 @@ const BookingPage: React.FC = () => {
           <View className={styles.emptyState}>
             <Text className={styles.emptyIcon}>💺</Text>
             <Text className={styles.emptyText}>请先选择座位和时段</Text>
-            <Button className={styles.goBtn} onClick={handleGoSelect}>
+            <Button className={styles.goBtn} onClick={handleChangeSeat}>
               去选座
             </Button>
           </View>
@@ -115,10 +152,13 @@ const BookingPage: React.FC = () => {
     <View className={styles.bookingPage}>
       <View className={styles.content}>
         <View className={styles.infoCard}>
-          <Text className={styles.cardTitle}>
-            <Text className={styles.cardTitleIcon}>💺</Text>
-            座位信息
-          </Text>
+          <View className={styles.cardHeader}>
+            <Text className={styles.cardTitle}>
+              <Text className={styles.cardTitleIcon}>💺</Text>
+              座位信息
+            </Text>
+            <Text className={styles.changeLink} onClick={handleChangeSeat}>更换座位</Text>
+          </View>
           <View className={styles.seatDetail}>
             <View className={styles.seatVisual}>
               <View className={styles.seatVisualIcon} />
@@ -141,6 +181,29 @@ const BookingPage: React.FC = () => {
         <View className={styles.infoCard}>
           <Text className={styles.cardTitle}>
             <Text className={styles.cardTitleIcon}>📅</Text>
+            选择日期
+          </Text>
+          <DatePicker selectedDate={date} onDateChange={setSelectedDate} />
+        </View>
+
+        <View className={styles.infoCard}>
+          <Text className={styles.cardTitle}>
+            <Text className={styles.cardTitleIcon}>⏰</Text>
+            选择时段
+          </Text>
+          <TimeSlotPicker
+            startTime={startTime}
+            endTime={endTime}
+            seatId={seat?.id}
+            date={date}
+            bookings={isModifyMode ? bookings.filter((b) => b.id !== effectiveModifyId) : bookings}
+            onTimeChange={setSelectedTime}
+          />
+        </View>
+
+        <View className={styles.infoCard}>
+          <Text className={styles.cardTitle}>
+            <Text className={styles.cardTitleIcon}>🔍</Text>
             预订信息
           </Text>
           <View className={styles.infoRow}>
@@ -163,6 +226,11 @@ const BookingPage: React.FC = () => {
               {hasConflict ? '⚠️ 时段冲突' : '✓ 可预订'}
             </Text>
           </View>
+          {hasConflict && conflictMessage && (
+            <View className={styles.conflictAlert}>
+              <Text className={styles.conflictAlertText}>⚠️ {conflictMessage}</Text>
+            </View>
+          )}
         </View>
 
         {isModifyMode && originalBooking && (
@@ -171,6 +239,10 @@ const BookingPage: React.FC = () => {
               <Text className={styles.cardTitleIcon}>📝</Text>
               原始订单信息
             </Text>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>原座位</Text>
+              <Text className={styles.infoValue}>{originalBooking.seat.seatNo}号</Text>
+            </View>
             <View className={styles.infoRow}>
               <Text className={styles.infoLabel}>原日期</Text>
               <Text className={styles.infoValue}>{originalBooking.date}</Text>
@@ -218,7 +290,7 @@ const BookingPage: React.FC = () => {
           </Text>
           <Text className={styles.priceValue}>
             <Text className={styles.currency}>¥</Text>
-            {isModifyMode && priceDiff !== null 
+            {isModifyMode && priceDiff !== null
               ? (priceDiff > 0 ? priceDiff : priceDiff < 0 ? Math.abs(priceDiff) : 0).toFixed(2)
               : billing.totalAmount.toFixed(2)}
           </Text>

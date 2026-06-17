@@ -17,9 +17,11 @@ const HomePage: React.FC = () => {
   const {
     bookings,
     selectedSeatInfo,
+    modifyBookingId,
     setSelectedSeat,
     setSelectedDate,
     setSelectedTime,
+    setModifyBookingId,
   } = useBooking();
 
   const { seat, date, startTime, endTime } = selectedSeatInfo;
@@ -27,22 +29,24 @@ const HomePage: React.FC = () => {
   const occupiedSeatIds = useMemo(() => {
     const timeOccupied = bookings
       .filter((b) => b.date === date && b.status !== 'cancelled' && !b.isMonthly)
+      .filter((b) => b.id !== modifyBookingId)
       .filter((b) => isTimeOverlap(startTime, endTime, b.startTime, b.endTime))
       .map((b) => b.seatId);
 
     const monthlyFixed = bookings
       .filter((b) => b.isMonthly && b.status !== 'cancelled')
+      .filter((b) => b.id !== modifyBookingId)
       .filter((b) => b.monthlyStartDate && b.monthlyEndDate)
-      .filter((b) => isSeatFixedForMonthly(b.seatId, date, bookings) !== null)
+      .filter((b) => isSeatFixedForMonthly(b.seatId, date, bookings, modifyBookingId || undefined) !== null)
       .map((b) => b.seatId);
 
     return [...new Set([...timeOccupied, ...monthlyFixed])];
-  }, [bookings, date, startTime, endTime]);
+  }, [bookings, date, startTime, endTime, modifyBookingId]);
 
   const conflictInfo = useMemo(() => {
     if (!seat) return null;
-    return checkBookingConflict(seat.id, date, startTime, endTime, bookings);
-  }, [seat, date, startTime, endTime, bookings]);
+    return checkBookingConflict(seat.id, date, startTime, endTime, bookings, modifyBookingId || undefined);
+  }, [seat, date, startTime, endTime, bookings, modifyBookingId]);
 
   const billing = useMemo(() => {
     return calculateBilling(startTime, endTime);
@@ -79,16 +83,33 @@ const HomePage: React.FC = () => {
       Taro.showToast({ title: conflictInfo.message || '时段冲突', icon: 'none' });
       return;
     }
-    console.log('[HomePage] 跳转到确认订单页');
-    Taro.navigateTo({ url: '/pages/booking/index' });
+    if (modifyBookingId) {
+      console.log('[HomePage] 改期模式，跳转到确认订单页', modifyBookingId);
+      Taro.navigateTo({ url: `/pages/booking/index?modifyId=${modifyBookingId}` });
+    } else {
+      console.log('[HomePage] 跳转到确认订单页');
+      Taro.navigateTo({ url: '/pages/booking/index' });
+    }
   };
 
   return (
     <View className={styles.homePage}>
       <View className={styles.header}>
-        <Text className={styles.title}>静学自习室</Text>
-        <Text className={styles.subtitle}>选择日期和时段，挑选你喜欢的座位</Text>
+        <Text className={styles.title}>
+          {modifyBookingId ? '修改预订' : '静学自习室'}
+        </Text>
+        <Text className={styles.subtitle}>
+          {modifyBookingId ? '重新选择日期、时段和座位' : '选择日期和时段，挑选你喜欢的座位'}
+        </Text>
       </View>
+
+      {modifyBookingId && (
+        <View style={{ background: '#E8F0FE', margin: '24rpx 32rpx 0', padding: '20rpx 24rpx', borderRadius: '16rpx' }}>
+          <Text style={{ fontSize: '26rpx', color: '#4F6EF5' }}>
+            📝 您正在修改订单，原订单的时段已临时释放，选完座位确认后将覆盖原订单
+          </Text>
+        </View>
+      )}
 
       <View className={styles.content}>
         <DatePicker selectedDate={date} onDateChange={setSelectedDate} />
@@ -98,7 +119,7 @@ const HomePage: React.FC = () => {
           endTime={endTime}
           seatId={seat?.id}
           date={date}
-          bookings={bookings}
+          bookings={bookings.filter((b) => b.id !== modifyBookingId)}
           onTimeChange={setSelectedTime}
         />
 
