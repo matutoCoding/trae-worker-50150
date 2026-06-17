@@ -1,0 +1,149 @@
+@use '@/styles/variables.scss' as *;
+
+.timeSlotPicker {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.label {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+}
+
+.timeline {
+  position: relative;
+  margin: $spacing-lg 0;
+  padding: 0 $spacing-sm;
+}
+
+.track {
+  height: 8rpx;
+  background: $color-bg-secondary;
+  border-radius: $radius-round;
+  position: relative;
+}
+
+.fill {
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(90deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: $radius-round;
+}
+
+.rangeLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: $spacing-sm;
+}
+
+.timeLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.slotsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.slotItem {
+  width: calc(25% - 12rpx);
+  height: 64rpx;
+  border-radius: $radius-md;
+  @include flex-center;
+  font-size: $font-size-sm;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.slotAvailable {
+  background: $color-bg-secondary;
+  color: $color-text-secondary;
+}
+
+.slotOccupied {
+  background: rgba($color-danger, 0.08);
+  color: $color-danger;
+  text-decoration: line-through;
+}
+
+.slotStartActive {
+  background: $color-primary;
+  color: $color-text-white;
+}
+
+.slotEndActive {
+  background: $color-secondary;
+  color: $color-text-white;
+}
+
+.slotInRange {
+  background: rgba($color-primary, 0.15);
+  color: $color-primary;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-md;
+  text-align: center;
+}
+
+.selectorRow {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.selector {
+  flex: 1;
+  background: $color-bg-secondary;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+}
+
+.selectorLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-xs;
+}
+
+.selectorValue {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.quickButtons {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.quickBtn {
+  @include button-reset;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-round;
+  background: rgba($color-primary, 0.08);
+  color: $color-primary;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+
+  &:active {
+    background: rgba($color-primary, 0.16);
+  }
+}

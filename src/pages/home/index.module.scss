@@ -1,0 +1,125 @@
+@use '@/styles/variables.scss' as *;
+
+.homePage {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 200rpx;
+}
+
+.header {
+  padding: $spacing-xl $page-padding $spacing-lg;
+  background: linear-gradient(180deg, rgba($color-primary, 0.08) 0%, $color-bg-page 100%);
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.content {
+  padding: 0 $page-padding;
+}
+
+.bottomBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $color-bg-card;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.seatSummary {
+  flex: 1;
+}
+
+.selectedSeat {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.selectedTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.priceSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: $spacing-md;
+}
+
+.priceLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.priceValue {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.confirmBtn {
+  @include button-reset;
+  height: $button-height-lg;
+  padding: 0 $spacing-xl;
+  border-radius: $radius-button;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  white-space: nowrap;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  &.disabled {
+    background: $color-border;
+    color: $color-text-disabled;
+  }
+}
+
+.conflictTip {
+  background: rgba($color-danger, 0.08);
+  border-radius: $radius-md;
+  padding: $spacing-sm $spacing-md;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.conflictText {
+  font-size: $font-size-sm;
+  color: $color-danger;
+  flex: 1;
+}
+
+.emptyTip {
+  @include card-base;
+  padding: $spacing-xxl;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}

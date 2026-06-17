@@ -1,0 +1,193 @@
+@use '@/styles/variables.scss' as *;
+
+.profilePage {
+  min-height: 100vh;
+  background: $color-bg-page;
+}
+
+.header {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  padding: $spacing-xxl $page-padding $spacing-xxl;
+  color: $color-text-white;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.avatar {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: $radius-round;
+  background: rgba(255, 255, 255, 0.2);
+  @include flex-center;
+  font-size: 56rpx;
+}
+
+.userMeta {
+  flex: 1;
+}
+
+.userName {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.userDesc {
+  font-size: $font-size-sm;
+  opacity: 0.85;
+}
+
+.stats {
+  display: flex;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-lg;
+  padding: $spacing-md;
+  backdrop-filter: blur(10rpx);
+}
+
+.statItem {
+  flex: 1;
+  text-align: center;
+}
+
+.statValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: 4rpx;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  opacity: 0.85;
+}
+
+.divider {
+  width: 1rpx;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0 $spacing-xs;
+}
+
+.content {
+  padding: $spacing-lg $page-padding;
+  margin-top: -$spacing-lg;
+}
+
+.card {
+  @include card-base;
+  padding: 0;
+  margin-bottom: $spacing-lg;
+  overflow: hidden;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  border-bottom: 1rpx solid $color-border-light;
+  transition: background $transition-fast;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background: $color-bg-secondary;
+  }
+}
+
+.menuIcon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-md;
+  @include flex-center;
+  font-size: 32rpx;
+  margin-right: $spacing-md;
+}
+
+.iconBlue {
+  background: rgba($color-primary, 0.1);
+}
+
+.iconGreen {
+  background: rgba($color-success, 0.1);
+}
+
+.iconOrange {
+  background: rgba($color-warning, 0.1);
+}
+
+.iconPurple {
+  background: rgba($color-purple, 0.1);
+}
+
+.iconRed {
+  background: rgba($color-danger, 0.1);
+}
+
+.menuContent {
+  flex: 1;
+}
+
+.menuTitle {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.menuDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.menuArrow {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  margin: $spacing-md 0 $spacing-sm;
+  padding: 0 $spacing-xs;
+}
+
+.vipCard {
+  @include card-base;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, $color-purple 0%, $color-purple-light 100%);
+  margin-bottom: $spacing-lg;
+}
+
+.vipTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.vipDesc {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: $spacing-md;
+}
+
+.vipBtn {
+  @include button-reset;
+  background: $color-text-white;
+  color: $color-purple;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  height: $button-height-sm;
+  padding: 0 $spacing-lg;
+  border-radius: $radius-button;
+
+  &:active {
+    opacity: 0.9;
+  }
+}

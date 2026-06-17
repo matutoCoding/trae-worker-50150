@@ -1,0 +1,116 @@
+@use '@/styles/variables.scss' as *;
+
+.seatItem {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-md;
+  @include flex-center;
+  flex-direction: column;
+  transition: all $transition-base;
+  position: relative;
+
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+  }
+}
+
+.seatNo {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.seatIcon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-bottom: 4rpx;
+  border-radius: $radius-xs;
+}
+
+.available {
+  background: rgba($color-seat-available, 0.12);
+  border: 2rpx solid $color-seat-available;
+
+  .seatNo, .seatIcon {
+    color: $color-seat-available;
+  }
+
+  .seatIcon {
+    background: $color-seat-available;
+  }
+}
+
+.selected {
+  background: $color-seat-selected;
+  border: 2rpx solid $color-seat-selected;
+
+  .seatNo, .seatIcon {
+    color: $color-text-white;
+  }
+
+  .seatIcon {
+    background: $color-text-white;
+  }
+}
+
+.occupied {
+  background: rgba($color-seat-occupied, 0.12);
+  border: 2rpx solid $color-seat-occupied;
+
+  .seatNo, .seatIcon {
+    color: $color-seat-occupied;
+  }
+
+  .seatIcon {
+    background: $color-seat-occupied;
+  }
+}
+
+.fixed {
+  background: rgba($color-seat-fixed, 0.12);
+  border: 2rpx solid $color-seat-fixed;
+
+  .seatNo, .seatIcon {
+    color: $color-seat-fixed;
+  }
+
+  .seatIcon {
+    background: $color-seat-fixed;
+  }
+}
+
+.disabled {
+  background: rgba($color-seat-disabled, 0.12);
+  border: 2rpx dashed $color-seat-disabled;
+
+  .seatNo, .seatIcon {
+    color: $color-seat-disabled;
+  }
+
+  .seatIcon {
+    background: $color-seat-disabled;
+  }
+}
+
+.tag {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  font-size: 18rpx;
+  padding: 2rpx 8rpx;
+  border-radius: $radius-round;
+  color: $color-text-white;
+  line-height: 1.4;
+}
+
+.tagVip {
+  background: $color-warning;
+}
+
+.tagQuiet {
+  background: $color-secondary;
+}
+
+.tagWindow {
+  background: $color-primary;
+}

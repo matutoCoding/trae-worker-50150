@@ -1,0 +1,237 @@
+@use '@/styles/variables.scss' as *;
+
+.detailPage {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: 200rpx;
+}
+
+.statusBanner {
+  padding: $spacing-xxl $page-padding;
+  text-align: center;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+}
+
+.statusConfirmed {
+  background: linear-gradient(135deg, $color-success 0%, $color-success-light 100%);
+}
+
+.statusPending {
+  background: linear-gradient(135deg, $color-warning 0%, $color-warning-light 100%);
+}
+
+.statusCancelled {
+  background: linear-gradient(135deg, $color-text-tertiary 0%, $color-border 100%);
+}
+
+.statusCompleted {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+}
+
+.statusIcon {
+  font-size: 80rpx;
+  margin-bottom: $spacing-sm;
+}
+
+.statusText {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-xs;
+}
+
+.statusDesc {
+  font-size: $font-size-sm;
+  opacity: 0.9;
+}
+
+.content {
+  padding: $spacing-lg $page-padding;
+  margin-top: -$spacing-lg;
+}
+
+.infoCard {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.cardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.cardTitleIcon {
+  font-size: $font-size-lg;
+}
+
+.seatRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.seatBadge {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  @include flex-center;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.seatBadgeIcon {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: $radius-xs;
+  background: $color-text-white;
+}
+
+.seatBadgeNo {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+}
+
+.seatInfo {
+  flex: 1;
+}
+
+.seatNo {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.seatMeta {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  text-align: right;
+  flex: 1;
+  margin-left: $spacing-md;
+}
+
+.timeline {
+  position: relative;
+  padding-left: $spacing-lg;
+}
+
+.timelineItem {
+  position: relative;
+  padding-bottom: $spacing-lg;
+  padding-left: $spacing-md;
+
+  &:last-child {
+    padding-bottom: 0;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20rpx;
+    bottom: 0;
+    width: 2rpx;
+    background: $color-border;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: -5rpx;
+    top: 14rpx;
+    width: 12rpx;
+    height: 12rpx;
+    border-radius: $radius-round;
+    background: $color-primary;
+  }
+}
+
+.timelineTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: 4rpx;
+}
+
+.timelineContent {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.bottomBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $color-bg-card;
+  padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  gap: $spacing-md;
+}
+
+.btn {
+  @include button-reset;
+  flex: 1;
+  height: $button-height-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+.btnSecondary {
+  background: $color-bg-secondary;
+  color: $color-text-secondary;
+}
+
+.btnDanger {
+  background: rgba($color-danger, 0.08);
+  color: $color-danger;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+}

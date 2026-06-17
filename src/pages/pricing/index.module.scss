@@ -1,0 +1,228 @@
+@use '@/styles/variables.scss' as *;
+
+.pricingPage {
+  min-height: 100vh;
+  background: $color-bg-page;
+  padding-bottom: $spacing-xxl;
+}
+
+.header {
+  padding: $spacing-xl $page-padding $spacing-lg;
+  background: linear-gradient(180deg, rgba($color-primary, 0.08) 0%, $color-bg-page 100%);
+}
+
+.title {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.content {
+  padding: 0 $page-padding;
+}
+
+.section {
+  margin-bottom: $spacing-xl;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.sectionIcon {
+  font-size: $font-size-lg;
+}
+
+.exampleCard {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.exampleTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.exampleDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+}
+
+.exampleBreakdown {
+  background: $color-bg-secondary;
+  border-radius: $radius-md;
+  padding: $spacing-md;
+}
+
+.exampleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xs 0;
+}
+
+.exampleLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.exampleValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.exampleTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: $spacing-md;
+  margin-top: $spacing-sm;
+  border-top: 1rpx solid $color-border-light;
+}
+
+.exampleTotalLabel {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.exampleTotalValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.monthlyCard {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  border: 2rpx solid transparent;
+  position: relative;
+  transition: all $transition-base;
+
+  &.recommended {
+    border-color: $color-primary;
+
+    &::before {
+      content: '推荐';
+      position: absolute;
+      top: 0;
+      right: $spacing-lg;
+      background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+      color: $color-text-white;
+      font-size: $font-size-xs;
+      padding: 4rpx 16rpx;
+      border-radius: 0 0 $radius-md $radius-md;
+    }
+  }
+}
+
+.monthlyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-md;
+}
+
+.monthlyName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.monthlyDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.monthlyPrice {
+  text-align: right;
+}
+
+.monthlyAmount {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-price-monthly;
+}
+
+.monthlyCurrency {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+}
+
+.monthlyUnit {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.monthlyFeatures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.featureTag {
+  font-size: $font-size-xs;
+  padding: $spacing-xs $spacing-sm;
+  border-radius:6rpx;
+  background: rgba($color-purple, 0.08);
+  color: $color-purple;
+}
+
+.rulesCard {
+  @include card-base;
+  padding: $spacing-lg;
+}
+
+.ruleItem {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.ruleDot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: $radius-round;
+  background: $color-primary;
+  margin-top: 10rpx;
+  flex-shrink: 0;
+}
+
+.ruleContent {
+  flex: 1;
+}
+
+.ruleTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.ruleDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}

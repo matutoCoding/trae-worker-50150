@@ -1,0 +1,17 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "study-room-booking",
+  "description": "付费自习室选座小程序",
+  "appid": "ttXXXXXXXXXXXXXXXX",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true,
+    "autoAudits": false
+  },
+  "compileType": "miniprogram",
+  "libVersion": "2.0.0",
+  "condition": {}
+}

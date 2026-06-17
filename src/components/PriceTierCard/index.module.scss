@@ -1,0 +1,85 @@
+@use '@/styles/variables.scss' as *;
+
+.priceTierCard {
+  @include card-base;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.tierHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+}
+
+.tierName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.tierBadge {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: $radius-round;
+}
+
+.badgePeak {
+  background: $color-price-peak;
+}
+
+.badgeNormal {
+  background: $color-price-normal;
+}
+
+.badgeValley {
+  background: $color-success;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.price {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-price-peak;
+}
+
+.currency {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+}
+
+.perUnit {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.timeRange {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  background: $color-bg-secondary;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-md;
+}
+
+.desc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-top: $spacing-sm;
+}
+
+.priceNormal {
+  color: $color-price-normal;
+}
+
+.priceValley {
+  color: $color-success;
+}
