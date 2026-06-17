@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import { useBooking } from '../../store/booking-context';
 import OrderCard from '../../components/OrderCard';
 import { Booking, BookingStatus } from '../../types/booking';
+import { calculateRefund, canCancelBooking } from '../../utils/conflict';
 import styles from './index.module.scss';
 
 type TabType = 'all' | 'confirmed' | 'completed' | 'cancelled';
@@ -36,16 +37,34 @@ const OrdersPage: React.FC = () => {
   };
 
   const handleCancel = (booking: Booking) => {
+    if (!canCancelBooking(booking)) {
+      const refund = calculateRefund(booking);
+      Taro.showToast({ title: refund?.reason || '不可退订', icon: 'none' });
+      return;
+    }
+
+    const refund = calculateRefund(booking);
+    const refundText = refund 
+      ? refund.refundRate === 100 
+        ? '全额退款' 
+        : refund.refundRate > 0 
+          ? `退款${refund.refundRate}%（¥${refund.refundAmount.toFixed(2)}）`
+          : '不予退款'
+      : '';
+
     Taro.showModal({
       title: '确认退订',
-      content: `确定要退订 ${booking.seat?.seatNo || '该座位'} ${booking.date} ${booking.startTime}-${booking.endTime} 的预订吗？退订后该时段将被释放。`,
+      content: `确定要退订 ${booking.seat?.seatNo || '该座位'} ${booking.date} ${booking.startTime}-${booking.endTime} 的预订吗？\n\n退订规则：${refund?.reason}\n预计退款：${refundText}\n\n退订后该时段将被释放。`,
       confirmText: '确认退订',
       confirmColor: '#F53F3F',
       success: (res) => {
         if (res.confirm) {
           const success = cancelBooking(booking.id);
           if (success) {
-            Taro.showToast({ title: '退订成功', icon: 'success' });
+            Taro.showToast({ 
+              title: refund?.refundAmount ? `退订成功，退款¥${refund.refundAmount.toFixed(2)}` : '退订成功', 
+              icon: 'success' 
+            });
           } else {
             Taro.showToast({ title: '退订失败', icon: 'none' });
           }

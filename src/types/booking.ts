@@ -9,6 +9,13 @@ export interface BookingTimeRange {
   endTime: string;
 }
 
+export interface RefundInfo {
+  refundAmount: number;
+  refundRate: number;
+  reason: string;
+  hoursBeforeStart: number;
+}
+
 export interface Booking {
   id: string;
   orderNo: string;
@@ -22,9 +29,14 @@ export interface Booking {
   billing: BillingResult;
   createdAt: string;
   cancelledAt?: string;
+  refundInfo?: RefundInfo;
   isMonthly: boolean;
   monthlyStartDate?: string;
   monthlyEndDate?: string;
+  modifiedAt?: string;
+  originalDate?: string;
+  originalStartTime?: string;
+  originalEndTime?: string;
 }
 
 export interface BookingConflict {

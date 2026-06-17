@@ -9,7 +9,7 @@ import TimeSlotPicker from '../../components/TimeSlotPicker';
 import SeatGrid from '../../components/SeatGrid';
 import BillingDetail from '../../components/BillingDetail';
 import { Seat } from '../../types/seat';
-import { checkBookingConflict } from '../../utils/conflict';
+import { checkBookingConflict, isTimeOverlap, isSeatFixedForMonthly } from '../../utils/conflict';
 import { calculateBilling } from '../../utils/billing';
 import styles from './index.module.scss';
 
@@ -25,10 +25,19 @@ const HomePage: React.FC = () => {
   const { seat, date, startTime, endTime } = selectedSeatInfo;
 
   const occupiedSeatIds = useMemo(() => {
-    return bookings
-      .filter((b) => b.date === date && b.status !== 'cancelled')
+    const timeOccupied = bookings
+      .filter((b) => b.date === date && b.status !== 'cancelled' && !b.isMonthly)
+      .filter((b) => isTimeOverlap(startTime, endTime, b.startTime, b.endTime))
       .map((b) => b.seatId);
-  }, [bookings, date]);
+
+    const monthlyFixed = bookings
+      .filter((b) => b.isMonthly && b.status !== 'cancelled')
+      .filter((b) => b.monthlyStartDate && b.monthlyEndDate)
+      .filter((b) => isSeatFixedForMonthly(b.seatId, date, bookings) !== null)
+      .map((b) => b.seatId);
+
+    return [...new Set([...timeOccupied, ...monthlyFixed])];
+  }, [bookings, date, startTime, endTime]);
 
   const conflictInfo = useMemo(() => {
     if (!seat) return null;

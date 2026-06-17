@@ -235,3 +235,23 @@
   background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
   color: $color-text-white;
 }
+
+.fullWidth {
+  flex: 1;
+  width: 100%;
+}
+
+.disabled {
+  opacity: 0.5;
+  background: $color-bg-disabled;
+  color: $color-text-tertiary;
+}
+
+.highlight {
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.dimmed {
+  color: $color-text-tertiary;
+}

@@ -226,3 +226,13 @@
     opacity: 0.9;
   }
 }
+
+.priceUp {
+  color: $color-danger;
+  font-weight: $font-weight-semibold;
+}
+
+.priceDown {
+  color: $color-success;
+  font-weight: $font-weight-semibold;
+}

@@ -4,6 +4,7 @@ import Taro, { useRouter } from '@tarojs/taro';
 import { useBooking } from '../../store/booking-context';
 import BillingDetail from '../../components/BillingDetail';
 import { BookingStatus } from '../../types/booking';
+import { calculateRefund, canCancelBooking } from '../../utils/conflict';
 import classnames from 'classnames';
 import styles from './index.module.scss';
 
@@ -31,18 +32,42 @@ const OrderDetailPage: React.FC = () => {
     return bookings.find((b) => b.id === orderId);
   }, [bookings, orderId]);
 
+  const refundInfo = useMemo(() => {
+    if (!booking) return null;
+    return calculateRefund(booking);
+  }, [booking]);
+
+  const canCancel = useMemo(() => {
+    if (!booking) return false;
+    return canCancelBooking(booking);
+  }, [booking]);
+
   const handleCancel = () => {
-    if (!booking) return;
+    if (!booking || !refundInfo) return;
+    if (!canCancel) {
+      Taro.showToast({ title: refundInfo.reason, icon: 'none' });
+      return;
+    }
+
+    const refundText = refundInfo.refundRate === 100 
+      ? '全额退款' 
+      : refundInfo.refundRate > 0 
+        ? `退款${refundInfo.refundRate}%（¥${refundInfo.refundAmount.toFixed(2)}）`
+        : '不予退款';
+
     Taro.showModal({
       title: '确认退订',
-      content: `确定要退订 ${booking.seat?.seatNo || '该座位'} ${booking.date} ${booking.startTime}-${booking.endTime} 的预订吗？退订后该时段将被释放。`,
+      content: `确定要退订 ${booking.seat?.seatNo || '该座位'} ${booking.date} ${booking.startTime}-${booking.endTime} 的预订吗？\n\n退订规则：${refundInfo.reason}\n预计退款：${refundText}\n\n退订后该时段将被释放。`,
       confirmText: '确认退订',
       confirmColor: '#F53F3F',
       success: (res) => {
         if (res.confirm) {
           const success = cancelBooking(booking.id);
           if (success) {
-            Taro.showToast({ title: '退订成功', icon: 'success' });
+            Taro.showToast({ 
+              title: refundInfo.refundAmount > 0 ? `退订成功，退款¥${refundInfo.refundAmount.toFixed(2)}` : '退订成功', 
+              icon: 'success' 
+            });
           } else {
             Taro.showToast({ title: '退订失败', icon: 'none' });
           }
@@ -57,6 +82,13 @@ const OrderDetailPage: React.FC = () => {
 
   const handleContact = () => {
     Taro.showToast({ title: '客服功能开发中', icon: 'none' });
+  };
+
+  const handleModify = () => {
+    if (!booking) return;
+    Taro.navigateTo({
+      url: `/pages/booking/index?modifyId=${booking.id}`,
+    });
   };
 
   if (!booking) {
@@ -82,7 +114,8 @@ const OrderDetailPage: React.FC = () => {
   const timeline = [
     { time: booking.createdAt, content: '订单创建成功' },
     booking.status === 'confirmed' && { time: booking.createdAt, content: '预订已确认' },
-    booking.status === 'cancelled' && booking.cancelledAt && { time: booking.cancelledAt, content: '订单已取消' },
+    booking.modifiedAt && { time: booking.modifiedAt, content: '订单已修改' },
+    booking.status === 'cancelled' && booking.cancelledAt && { time: booking.cancelledAt, content: booking.refundInfo?.refundAmount ? `订单已取消，已退款¥${booking.refundInfo.refundAmount.toFixed(2)}` : '订单已取消' },
     booking.status === 'completed' && { time: booking.createdAt, content: '使用已完成' },
   ].filter(Boolean) as { time: string; content: string }[];
 
@@ -165,6 +198,66 @@ const OrderDetailPage: React.FC = () => {
 
         <BillingDetail billing={booking.billing} title="费用明细" />
 
+        {booking.refundInfo && (
+          <View className={styles.infoCard}>
+            <Text className={styles.cardTitle}>
+              <Text className={styles.cardTitleIcon}>💰</Text>
+              退款信息
+            </Text>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>退款状态</Text>
+              <Text className={`${styles.infoValue} ${booking.refundInfo.refundAmount > 0 ? styles.highlight : styles.dimmed}`}>
+                {booking.refundInfo.refundAmount > 0 ? '已退款' : '无退款'}
+              </Text>
+            </View>
+            {booking.refundInfo.refundAmount > 0 && (
+              <View className={styles.infoRow}>
+                <Text className={styles.infoLabel}>退款金额</Text>
+                <Text className={`${styles.infoValue} ${styles.highlight}`}>
+                  ¥{booking.refundInfo.refundAmount.toFixed(2)}
+                </Text>
+              </View>
+            )}
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>退款说明</Text>
+              <Text className={styles.infoValue}>{booking.refundInfo.reason}</Text>
+            </View>
+            {booking.refundInfo.hoursBeforeStart > 0 && (
+              <View className={styles.infoRow}>
+                <Text className={styles.infoLabel}>退订时间</Text>
+                <Text className={styles.infoValue}>
+                  距开始前 {booking.refundInfo.hoursBeforeStart.toFixed(1)} 小时
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {booking.status === 'confirmed' && refundInfo && !booking.isMonthly && (
+          <View className={styles.infoCard}>
+            <Text className={styles.cardTitle}>
+              <Text className={styles.cardTitleIcon}>📋</Text>
+              退订规则
+            </Text>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>当前状态</Text>
+              <Text className={`${styles.infoValue} ${canCancel ? styles.highlight : styles.dimmed}`}>
+                {canCancel ? '可退订' : '不可退订'}
+              </Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>预计退款</Text>
+              <Text className={`${styles.infoValue} ${styles.highlight}`}>
+                {refundInfo.refundRate === 100 ? '全额退款' : `${refundInfo.refundRate}%（¥${refundInfo.refundAmount.toFixed(2)}）`}
+              </Text>
+            </View>
+            <View className={styles.infoRow}>
+              <Text className={styles.infoLabel}>退订说明</Text>
+              <Text className={styles.infoValue}>{refundInfo.reason}</Text>
+            </View>
+          </View>
+        )}
+
         <View className={styles.infoCard}>
           <Text className={styles.cardTitle}>
             <Text className={styles.cardTitleIcon}>🕐</Text>
@@ -184,15 +277,21 @@ const OrderDetailPage: React.FC = () => {
       </View>
 
       <View className={styles.bottomBar}>
-        <Button className={classnames(styles.btn, styles.btnSecondary)} onClick={handleContact}>
-          联系客服
-        </Button>
         {(booking.status === 'confirmed' || booking.status === 'pending') && !booking.isMonthly ? (
-          <Button className={classnames(styles.btn, styles.btnDanger)} onClick={handleCancel}>
-            申请退订
-          </Button>
+          <>
+            <Button className={classnames(styles.btn, styles.btnSecondary)} onClick={handleModify}>
+              修改订单
+            </Button>
+            <Button 
+              className={classnames(styles.btn, !canCancel && styles.disabled)} 
+              onClick={handleCancel}
+              disabled={!canCancel}
+            >
+              {canCancel ? '申请退订' : '不可退订'}
+            </Button>
+          </>
         ) : (
-          <Button className={classnames(styles.btn, styles.btnPrimary)} onClick={handleGoHome}>
+          <Button className={classnames(styles.btn, styles.btnPrimary, styles.fullWidth)} onClick={handleGoHome}>
             继续预订
           </Button>
         )}

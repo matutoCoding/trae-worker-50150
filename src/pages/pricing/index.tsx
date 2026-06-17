@@ -1,13 +1,21 @@
 import React from 'react';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Button } from '@tarojs/components';
+import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import { priceRates, monthlyPackages } from '../../data/pricing';
 import PriceTierCard from '../../components/PriceTierCard';
 import { calculateBilling } from '../../utils/billing';
+import { MonthlyPackage } from '../../types/pricing';
 import styles from './index.module.scss';
 
 const PricingPage: React.FC = () => {
   const exampleBilling = calculateBilling('10:00', '19:00');
+
+  const handleSubscribe = (pkg: MonthlyPackage) => {
+    Taro.navigateTo({
+      url: `/pages/monthly-booking/index?pkgId=${pkg.id}`,
+    });
+  };
 
   return (
     <View className={styles.pricingPage}>
@@ -92,6 +100,17 @@ const PricingPage: React.FC = () => {
                 {pkg.features.map((f) => (
                   <Text key={f} className={styles.featureTag}>✓ {f}</Text>
                 ))}
+              </View>
+              <View className={styles.monthlyAction}>
+                <Button
+                  className={styles.subscribeBtn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSubscribe(pkg);
+                  }}
+                >
+                  立即开通
+                </Button>
               </View>
             </View>
           ))}
