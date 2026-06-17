@@ -93,7 +93,7 @@ const BookingPage: React.FC = () => {
                 ))}
               </View>
               <Text className={styles.seatZone}>
-                {seat.row === 0 || seat.row < 4 ? 'A区·静谧学习区' : 'B区·开放协作区'}
+                {seat.id.startsWith('seat-a') ? 'A区·静谧学习区' : 'B区·开放协作区'}
               </Text>
             </View>
           </View>

@@ -55,6 +55,8 @@ export const generateTimeSlots = (
       slots.push({ time, label: time });
     }
   }
+  const endTime = `${String(endHour).padStart(2, '0')}:00`;
+  slots.push({ time: endTime, label: endTime });
   return slots;
 };
 

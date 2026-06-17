@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import Taro from '@tarojs/taro';
 import { Seat } from '../types/seat';
 import { Booking, SelectedSeatInfo } from '../types/booking';
 import { BillingResult } from '../types/pricing';
@@ -6,6 +7,8 @@ import { mockBookings } from '../data/bookings';
 import { getToday } from '../utils/date';
 import { checkBookingConflict, releaseBookingTimeSlot } from '../utils/conflict';
 import { calculateBilling } from '../utils/billing';
+
+const STORAGE_KEY_BOOKINGS = 'study_room_bookings';
 
 interface BookingContextValue {
   bookings: Booking[];
@@ -28,9 +31,37 @@ const initialSelectedInfo: SelectedSeatInfo = {
   endTime: '12:00',
 };
 
+const loadBookingsFromStorage = (): Booking[] => {
+  try {
+    const stored = Taro.getStorageSync(STORAGE_KEY_BOOKINGS);
+    if (stored && Array.isArray(stored) && stored.length > 0) {
+      console.log('[BookingContext] 从本地存储加载订单:', stored.length, '条');
+      return stored;
+    }
+    console.log('[BookingContext] 本地存储为空，使用Mock数据初始化');
+    return mockBookings;
+  } catch (e) {
+    console.error('[BookingContext] 读取本地存储失败:', e);
+    return mockBookings;
+  }
+};
+
+const saveBookingsToStorage = (bookings: Booking[]) => {
+  try {
+    Taro.setStorageSync(STORAGE_KEY_BOOKINGS, bookings);
+    console.log('[BookingContext] 订单已保存到本地存储:', bookings.length, '条');
+  } catch (e) {
+    console.error('[BookingContext] 保存本地存储失败:', e);
+  }
+};
+
 export const BookingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [bookings, setBookings] = useState<Booking[]>(mockBookings);
+  const [bookings, setBookings] = useState<Booking[]>(() => loadBookingsFromStorage());
   const [selectedSeatInfo, setSelectedSeatInfo] = useState<SelectedSeatInfo>(initialSelectedInfo);
+
+  useEffect(() => {
+    saveBookingsToStorage(bookings);
+  }, [bookings]);
 
   const setSelectedSeat = useCallback((seat: Seat | null) => {
     console.log('[BookingContext] 选择座位:', seat?.seatNo);
